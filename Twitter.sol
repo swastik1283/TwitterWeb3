@@ -5,7 +5,7 @@ contract Twitter{
 
 
   uint16 public MAX_TWEET_LENGTH=280;
-
+  
     struct Tweet{ 
         uint256 id;
         address author;
@@ -16,14 +16,18 @@ contract Twitter{
      
 
      // adding tweets ,mapping to the user,retrieving 1 tweet,retrieving many tweets 
-    mapping(address => Tweet[]) public  tweets;
+    mapping(address => Tweet[])  public  tweets;
     address public owner;
-
+ event TweetCreated(uint256 id,address author,string content,uint256 timestamp );
+      event TweetLiked(address liker,address tweetAuthor,uint256 tweetId,uint256 newLikeCount);
+      event TweetUnliked(address unliker,address tweetAuthor,uint256 tweetId,uint256 newLikeCount);
     constructor(){
         owner=msg.sender;
-    }
+    
 
-    modifier onlyOwner(){
+    }
+     modifier onlyOwner(){
+      
         require(msg.sender==owner,"you are not owner");
         _;
     }
@@ -42,19 +46,22 @@ contract Twitter{
             likes:0
         });
         tweets[msg.sender].push(newTweet);
+        emit TweetCreated(newTweet.id,newTweet.author,newTweet.content,newTweet.timestamp);
     } 
    function likeTweet(address author,uint256 id )external{
     
        require(tweets[author][id].id==id,"tweets doesnt exist");
 
           tweets[author][id].likes++;
-
+         emit TweetLiked(msg.sender,author,id,tweets[author][id].likes);
    }
+
    function unlikeTweet(address author,uint256 id) external{
     require(tweets[author][id].id==id,"tweets doesnt exist");
     require(tweets[author][id].likes>0,"tweets has no like");
 
     tweets[author][id].likes--;
+    emit TweetUnliked(msg.sender,author,id,tweets[author][id].likes);
    }
 
     function getTweet(uint _i)public  view returns (Tweet memory){
